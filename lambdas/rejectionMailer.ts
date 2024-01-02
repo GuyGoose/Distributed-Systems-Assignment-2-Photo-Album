@@ -24,12 +24,12 @@ const client = new SESClient({ region: "eu-west-1" });
 export const handler: SQSHandler = async (event: any) => {
   console.log("Event ", JSON.stringify(event));
   for (const record of event.Records) {
-    // const recordBody = JSON.parse(record.Sns);
-    const snsMessage = JSON.parse(record.Sns.Message);
-
-    if (snsMessage.Records) {
-      console.log("Record body ", JSON.stringify(snsMessage));
-      for (const messageRecord of snsMessage.Records) {
+    const recordBody = JSON.parse(record.body);
+    // const snsMessage = JSON.parse(record.Sns.Message);
+    const Message = JSON.parse(recordBody.Message);
+    if (Message.Records) {
+      console.log("Record body ", JSON.stringify(Message));
+      for (const messageRecord of Message.Records) {
         const s3e = messageRecord.s3;
         const srcBucket = s3e.bucket.name;
         // Object key may have spaces or unicode non-ASCII characters.
@@ -38,7 +38,7 @@ export const handler: SQSHandler = async (event: any) => {
           const { name, email, message }: ContactDetails = {
             name: "The Photo Album",
             email: SES_EMAIL_FROM,
-            message: `We received your Image. Its URL is s3://${srcBucket}/${srcKey}`,
+            message: `This image could be processed and has been rejected. Its URL is s3://${srcBucket}/${srcKey}`,
           };
           const params = sendEmailParams({ name, email, message });
           await client.send(new SendEmailCommand(params));
